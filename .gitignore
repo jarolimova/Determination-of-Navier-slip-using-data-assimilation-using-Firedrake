@@ -1,0 +1,14 @@
+*.h5
+*.xdmf
+*.pvsm
+dolfin-env*
+*__pycache__*
+*.out
+*.sh
+*.vtu
+*.pvtu
+*.pvd
+*.csv
+*.txt
+*.pdf
+*.png
