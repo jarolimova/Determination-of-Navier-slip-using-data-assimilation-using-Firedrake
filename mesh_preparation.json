@@ -1,0 +1,38 @@
+{
+    "name": "tube_segmented",
+    "input_path": "demo/geometry/tube_02_res0.002_segmentation.vtk",
+    "folder": "demo/geometry",
+    "uniform_remeshing": 0.0015,
+    "centerlines_parameters": {
+        "seedselector": "pointlist",
+        "source": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "target": [
+            [
+                0.0,
+                0.0,
+                0.1
+            ]
+        ]
+    },
+    "initial_remeshing_parameters": null,
+    "smoothing_parameters": {
+        "passband": 0.005,
+        "iterations": 30
+    },
+    "clip_parameters": {
+        "inlet": 0.2,
+        "outlets": [
+            0.1
+        ]
+    },
+    "extensions": false,
+    "final_remeshing_parameters": {
+        "edgelength": 0.003
+    },
+    "cap_edgelength": 0.003,
+    "scale": 1.0
+}
