@@ -1,0 +1,8 @@
+gmsh==4.11.1
+numpy==1.24.0
+matplotlib==3.7.1
+pandas==2.0.1
+pydicom==2.4.2
+scipy==1.13.0
+SimpleITK==2.2.1
+vmtk==1.4.0

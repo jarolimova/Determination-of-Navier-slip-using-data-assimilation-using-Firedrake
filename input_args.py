@@ -7,112 +7,15 @@ from shutil import rmtree
 from pathlib import Path
 
 
-def get_args_steady():
-    """Get command line arguments for steady state assimilation."""
-    parser = get_args()
-    parser.add_argument(
-        "--timestep",
-        type=int,
-        default=0,
-        help="timestep of the data to assimilate, default: 0",
-    )
-    parser.add_argument(
-        "--wall_control",
-        type=str,
-        default="theta",
-        help="default: theta, options: penalty (theta/(gamma*(1-theta))), logarithm (log(penalty))",
-    )
-    parser.add_argument(
-        "--alpha",
-        type=float,
-        default=0.0,
-        help="the regularization weight of grad of velocity at the inlet, default: 0.0",
-    )
-    parser.add_argument(
-        "--gamma",
-        type=float,
-        default=0.0,
-        help="the regularization weight for distance from analytical profile, default: 0.0",
-    )
-    args = parser.parse_args()
-    return args
-
-
 def get_args_unsteady():
     """Get command line arguments for unsteady state assimilation."""
-    parser = get_args()
-    parser.add_argument(
-        "--alpha",
-        type=float,
-        default=0.0,
-        help="the regularization weight of grad of velocity at the inlet, default: 0.0",
-    )
-    parser.add_argument(
-        "--gamma",
-        type=float,
-        default=0.0,
-        help="the regularization weight for time derivative of the inlet, default: 0.0",
-    )
-    parser.add_argument(
-        "--delta",
-        type=float,
-        default=0.0,
-        help="the regularization weight for time derivative of the gradient velocity at the inlet, default: 0.0",
-    )
-    parser.add_argument(
-        "--epsilon",
-        type=float,
-        default=0.0,
-        help="the regularization weight for kinetic energy at the inlet, default: 0.0",
-    )
-    parser.add_argument(
-        "--dt",
-        type=float,
-        default=0.01,
-        help="simulation timestep size",
-    )
-    parser.add_argument(
-        "--T_end",
-        type=float,
-        default=None,
-        help="end time for the simulation, default: last time step included in the data",
-    )
-    parser.add_argument(
-        "--presteps",
-        type=int,
-        default=0,
-        help="number of simulation steps to add at the start",
-    )
-    parser.add_argument(
-        "--average",
-        action="store_true",
-        help="average over intervals in error functional",
-    )
-    parser.add_argument(
-        "--wall_control",
-        type=str,
-        default="logarithm",
-        help="default: theta, options: penalty (theta/(gamma*(1-theta))), logarithm (log(penalty)), sliplength (mu/penalty)",
-    )
-    parser.add_argument(
-        "--vin_path",
-        type=str,
-        default=None,
-        help="path to the h5 file to be used as intial guess for v_in, has to have the same timestepping!",
-    )
-    args = parser.parse_args()
-    return args
-
-
-def get_args():
-    """Get command line arguments for the assimilation process - common for both steady and unsteady state."""
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("meshname", type=str, help="name of the mesh to be used")
     parser.add_argument("dataname", type=str, help="name of the data")
     parser.add_argument(
         "--init_theta",
         type=float,
-        default=0.75,
+        default=0.7,
         help="theta initial value, default: 0.75",
     )
     parser.add_argument(
@@ -237,7 +140,67 @@ def get_args():
         action="store_true",
         help="run taylor test instead of the optimization",
     )
-    return parser
+    parser.add_argument(
+        "--alpha",
+        type=float,
+        default=0.0,
+        help="the regularization weight of grad of velocity at the inlet, default: 0.0",
+    )
+    parser.add_argument(
+        "--gamma",
+        type=float,
+        default=0.0,
+        help="the regularization weight for time derivative of the inlet, default: 0.0",
+    )
+    parser.add_argument(
+        "--delta",
+        type=float,
+        default=0.0,
+        help="the regularization weight for time derivative of the gradient velocity at the inlet, default: 0.0",
+    )
+    parser.add_argument(
+        "--epsilon",
+        type=float,
+        default=0.0,
+        help="the regularization weight for kinetic energy at the inlet, default: 0.0",
+    )
+    parser.add_argument(
+        "--dt",
+        type=float,
+        default=0.01,
+        help="simulation timestep size",
+    )
+    parser.add_argument(
+        "--T_end",
+        type=float,
+        default=None,
+        help="end time for the simulation, default: last time step included in the data",
+    )
+    parser.add_argument(
+        "--presteps",
+        type=int,
+        default=0,
+        help="number of simulation steps to add at the start",
+    )
+    parser.add_argument(
+        "--average",
+        action="store_true",
+        help="average over intervals in error functional",
+    )
+    parser.add_argument(
+        "--wall_control",
+        type=str,
+        default="logarithm",
+        help="default: theta, options: penalty (theta/(gamma*(1-theta))), logarithm (log(penalty)), sliplength (mu/penalty)",
+    )
+    parser.add_argument(
+        "--vin_path",
+        type=str,
+        default=None,
+        help="path to the h5 file to be used as intial guess for v_in, has to have the same timestepping!",
+    )
+    args = parser.parse_args()
+    return args
 
 
 def prepare_folder(args, comm, empty_folder=True):

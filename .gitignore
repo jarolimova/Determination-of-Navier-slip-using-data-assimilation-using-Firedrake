@@ -9,6 +9,5 @@ dolfin-env*
 *.pvtu
 *.pvd
 *.csv
-*.txt
 *.pdf
 *.png
