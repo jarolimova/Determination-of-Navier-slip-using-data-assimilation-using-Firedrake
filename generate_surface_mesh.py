@@ -14,7 +14,7 @@ from vmtk_utils.surface_operations import (
     scale_surface,
     surface_projection,
     transform_to_ras,
-    add_extensions
+    add_extensions,
 )
 from vmtk_utils.conversion import marching_cubes
 from vmtk_utils.surface_properties import surface_curvature, get_boundary_ref_systems

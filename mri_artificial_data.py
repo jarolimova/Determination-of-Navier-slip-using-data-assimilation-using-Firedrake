@@ -11,7 +11,6 @@ import warnings
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     import firedrake as fd
-    from firedrake.__future__ import interpolate
 from math import ceil
 from typing import List
 

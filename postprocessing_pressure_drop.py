@@ -3,6 +3,7 @@ import os
 import sys
 import csv
 import json
+import argparse
 import firedrake as fd
 from firedrake.__future__ import interpolate
 from data_loading import read_data_h5
@@ -13,6 +14,7 @@ from data_loading import load_to_mri, read_mesh_h5
 
 
 def pressure_drop(p_list, mesh):
+    """Calculate the pressure drop across the inlet and outlet of the mesh."""
     Q = fd.FunctionSpace(mesh, "CG", 1)
     in_area = fd.assemble(fd.project(fd.Constant(1.0), Q) * fd.ds(marks["in"]))
     out_area = fd.assemble(fd.project(fd.Constant(1.0), Q) * fd.ds(marks["out"]))
@@ -23,6 +25,7 @@ def pressure_drop(p_list, mesh):
 
 
 def average_velocity(v_list, mesh):
+    """Calculate the average velocity across the mesh."""
     Q = fd.FunctionSpace(mesh, "CG", 1)
     volume = fd.assemble(fd.project(fd.Constant(1.0), Q) * fd.dx)
     v_avg_list = [fd.assemble(fd.sqrt(fd.inner(v, v)) * fd.dx) / volume for v in v_list]
@@ -34,16 +37,17 @@ def make_graphs(
     datanames,
     regs,
     solvers=["picard0"],
-    inits=["init_theta0.7_nitsche_data"],
+    inits=["init_theta0.7_data"],
     element="p1p1_stab0.0005_1.0_0.01",
-    results_folder="/usr/work/jarolimova/assimilation/results_firedrake",
-    show_presteps=[0, 2],
+    results_folder="results",
+    show_presteps=[2],
     original_data=None,
     csv_save=False,
     ground_truth_h5=None,
     figname_tail="",
     labels=None,
 ):
+    """Create graphs of pressure drop and average velocity for the given meshes and data."""
     if original_data is not None:
         mri = MRI.from_json(os.path.join(original_data))
     if ground_truth_h5 is not None:
@@ -92,11 +96,6 @@ def make_graphs(
             interpolated_ground_truth_pressure_list = [
                 fd.assemble(interpolate(dat, P)) for dat in ground_truth_pressure_list
             ]
-            # pvdfile = fd.output.VTKFile(f"{datanames[0]}_ref_pressure.pvd")
-            # for i, p in enumerate(interpolated_ground_truth_pressure_list):
-            #    p.rename("p")
-            #    pvdfile.write(p, time=i*0.01)
-            # return
             ground_truth_v_avg_list = average_velocity(
                 interpolated_ground_truth_data_list, mesh
             )
@@ -127,13 +126,10 @@ def make_graphs(
             case_disc = [disc for disc in discretizations if case in disc]
             case_disc.sort()
             fig, ((axp, axv)) = plt.subplots(2, 1, sharex=True)
-            # ttle = fig.suptitle(meshname + ", " + case)
             axp.set_xlabel("time (s)", fontsize=12)
             axv.set_xlabel("time (s)", fontsize=12)
             axp.set_ylabel("pressure drop", fontsize=12)
             axv.set_ylabel("average velocity", fontsize=12)
-            # axp.set_xlim(xmin=-0.02)
-            # axv.set_xlim(xmin=-0.02)
             axp.set_xlim(xmin=0.0)
             axv.set_xlim(xmin=0.0)
             axp.set_xlim(xmax=T)
@@ -271,7 +267,6 @@ def make_graphs(
                                             t_list,
                                             p_drop_list,
                                             label=label,
-                                            # color="orange",
                                         )
                                         save_plot = True
                                     if os.path.isfile(vpath):
@@ -283,7 +278,6 @@ def make_graphs(
                                             t_list,
                                             v_avg_list,
                                             label=label,
-                                            # color="orange",
                                         )
                                         save_plot = True
                                     if (
@@ -303,8 +297,6 @@ def make_graphs(
             axp.grid()
             if labels != "legend":
                 axv.grid()
-            # lgdp = axp.legend(bbox_to_anchor=(1.01, 1.0), loc="upper left", fontsize=10)
-            # lgdv = axv.legend(bbox_to_anchor=(1.01, 1.0), loc="upper left", fontsize=10)
             axp.legend(fontsize=12)
             axv.legend(fontsize=12)
             if save_plot:
@@ -315,7 +307,6 @@ def make_graphs(
                             "postprocessing",
                             figname + f".{format}",
                         ),
-                        # bbox_extra_artists=(lgdp, lgdv),
                         bbox_inches="tight",
                     )
 
@@ -329,6 +320,74 @@ def save_csv(output_file, timesteps, pdrops, vavgs):
     return
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument(
+        "meshes",
+        type=str,
+        nargs="+",
+        help="list of mesh names to plot",
+    )
+    parser.add_argument(
+        "datanames",
+        type=str,
+        nargs="+",
+        help="list of data names to plot",
+    )
+    parser.add_argument(
+        "--regularizations",
+        type=str,
+        nargs="+",
+        default=["alpha0.001_gamma0.001_eps0.001_avg"],
+        help="list of regularizations to plot, default: alpha0.001_gamma0.001_eps0.001_avg",
+    )
+    parser.add_argument(
+        "--solvers",
+        type=str,
+        nargs="+",
+        default=["picard0"],
+        help="list of solvers to plot, default: picard0",
+    )
+    parser.add_argument(
+        "--initializations",
+        type=str,
+        nargs="+",
+        default=["init_theta0.7_data"],
+        help="list of initializations to plot, default: init_theta0.7_data",
+    )
+    parser.add_argument(
+        "--numerical_setting",
+        type=str,
+        default="p1p1_stab0.0005_1.0_0.01",
+        help="numerical setting for the simulation, default: p1p1_stab0.0005_1.0_0.01",
+    )
+    parser.add_argument(
+        "--presteps",
+        type=int,
+        nargs="+",
+        default=[2],
+        help="list of presteps to show in the plot, default: [2]",
+    )
+    parser.add_argument(
+        "--MRI_data",
+        type=str,
+        default=None,
+        help="path to the corresponding MRI data in JSON+npy format to appear in the plot, default: None",
+    )
+    parser.add_argument(
+        "--results_folder",
+        type=str,
+        default="results",
+        help="location of the results folder which are being plotted, default: MRI_npy",
+    )
+    csv_save = (False,)
+    ground_truth_h5 = (None,)
+    figname_tail = ("",)
+    labels = (None,)
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print("specify --slip, --presteps, --operators, --legend or --synthetic")
@@ -340,8 +399,6 @@ if __name__ == "__main__":
             make_graphs(
                 meshes=[
                     f"long_015_{volunteer}",
-                    # f"segmentator_015_{volunteer}",
-                    # f"segmentator_wider_015_{volunteer}",
                 ],
                 datanames=[f"{volunteer}_CG"],
                 regs=[
@@ -349,11 +406,10 @@ if __name__ == "__main__":
                 ],
                 solvers=[
                     "picard0",
-                    # "picard0_BDF2"
                 ],
                 inits=[
-                    "init_theta0.7_nitsche_data",
-                    "init_theta0.98_nitsche_notheta_data",
+                    "init_theta0.7_data",
+                    "init_theta0.98_notheta_data",
                 ],
                 show_presteps=[2],
                 original_data=os.path.join(
@@ -374,12 +430,9 @@ if __name__ == "__main__":
                 "picard0",
             ],
             inits=[
-                "init_theta0.7_nitsche_data",
+                "init_theta0.7_data",
             ],
             show_presteps=[0, 2],
-            # original_data=os.path.join(
-            #    "/usr/work/jarolimova/assimilation/MRI_npy", "vol01"
-            # ),
             labels="presteps",
             figname_tail="_presteps",
         )
@@ -397,7 +450,7 @@ if __name__ == "__main__":
                 "picard0",
             ],
             inits=[
-                "init_theta0.7_nitsche_data",
+                "init_theta0.7_data",
             ],
             show_presteps=[2],
             original_data=os.path.join(
@@ -419,7 +472,7 @@ if __name__ == "__main__":
                 "picard0",
             ],
             inits=[
-                "init_theta0.7_nitsche_data",
+                "init_theta0.7_data",
             ],
             show_presteps=[2],
             original_data=os.path.join(
@@ -449,15 +502,10 @@ if __name__ == "__main__":
                     [mesh],
                     datanames,
                     regs=[
-                        # "alpha0.001_gamma0.001_eps0.001",
                         "alpha0.001_gamma0.001_eps0.001_avg",
                     ],
-                    inits=["init_theta0.7_nitsche_data"],
+                    inits=["init_theta0.7_data"],
                     show_presteps=[2],
-                    # original_data=os.path.join(
-                    #   "/usr/work/jarolimova/assimilation/MRI_npy", f"pulse0.5_bent_proj"
-                    # ),
-                    # csv_save=True,
                     ground_truth_h5=f"/usr/work/jarolimova/assimilation/data_firedrake/{fine_meshname}/p1p1/pulse{theta}_timedep",
                     labels="slip",
                     figname_tail=f"_theta{theta}",

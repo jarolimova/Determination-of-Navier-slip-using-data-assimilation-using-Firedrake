@@ -21,63 +21,6 @@ print = PETSc.Sys.Print
 
 marks = {"wall": 1, "in": 2, "out": 3}
 
-
-class AnalyticInletProfile:
-    """This class computes the analytic inlet profile for a given mesh, radius, center point, and normal vector.
-
-    Args:
-        in_data (dict): Dictionary containing the radius, center point, and normal vector.
-        mesh (fd.Mesh): The mesh on which the profile is computed.
-        mu (float): Dynamic viscosity of the fluid.
-        slip_penalty (object): An object that provides a method to convert control variables to penalties
-    """
-
-    def __init__(self, in_data, mesh, mu, slip_penalty):
-        """Initialize the analytic inlet profile with the given parameters."""
-        self.R = in_data["radius"]
-        self.cp = in_data["point"]
-        self.normal = in_data["normal"]
-        self.mesh = mesh
-        self.mu = mu
-        self.slip_penalty = slip_penalty
-
-    def freeslip(self):
-        """Compute the freeslip term"""
-        return 4 * self.mu * self.R
-
-    def noslip(self):
-        """Compute the noslip term"""
-        x, y, z = fd.SpatialCoordinate(self.mesh)
-        return 2 * (
-            pow(self.R, 2)
-            - pow(x - self.cp[0], 2)
-            - pow(y - self.cp[1], 2)
-            - pow(z - self.cp[2], 2)
-        )
-
-    def normal_vector(self):
-        """Compute the normal vector as a firedrake vector field"""
-        return fd.as_vector(tuple(self.normal))
-
-    def __call__(self, wall_control, v_mag):
-        """Compute the analytic inlet profile for a given wall control and velocity magnitude.
-
-        Args:
-            wall_control (float): The control variable for the wall condition.
-            v_mag (float): The magnitude of the velocity at the inlet.
-
-        Returns:
-            fd.VectorFunctionSpace: A vector field representing the analytic inlet profile.
-        """
-        penalty = self.slip_penalty.control_variable_to_penalty(wall_control)
-        return (
-            v_mag
-            * (self.freeslip() + penalty * self.noslip())
-            / (self.freeslip() + penalty * self.R**2)
-            * self.normal_vector()
-        )
-
-
 # Helper functions for vector field operations:
 
 

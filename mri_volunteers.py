@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import argparse
 import firedrake as fd
 from MRI_tools.MRI_firedrake import MRI
 from MRI_tools.volunteer import Volunteer
@@ -21,37 +22,41 @@ def msh_to_h5(meshpath, folder="data"):
         shutil.copy(meshpath + "_cuts.json", folder)
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument(
+        "json_paths",
+        type=str,
+        nargs="+",
+        help="paths to the volunteer json files",
+    )
+    parser.add_argument(
+        "--MRI_folder",
+        type=str,
+        default="MRI_npy",
+        help="location of the MRI folder, default: MRI_npy",
+    )
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == "__main__":
-    vol_ids = [
-        "01",
-        "03",
-        "04",
-        "10",
-        "12",
-        "13",
-        "14",
-        "17",
-        "18",
-        "19",
-        "20", 
-        "57",
-        "59",
-    ]
-    for vol_id in vol_ids:
-        vol = Volunteer.from_json(
-            f"/usr/users/jarolimova/MRI_simulation/volunteer_jsons/volunteer_{vol_id}.json"
-        )
+    args = get_args()
+    for json_path in args.json_paths:
+        if not os.path.exists(json_path):
+            raise FileNotFoundError(f"JSON file {json_path} does not exist.")
+        vol = Volunteer.from_json(json_path)
         if vol.transform_file is not None:
             # create MRI object based on the Volunteer obj
             mri = vol.create_MRI(MRI)
-            mri.results_folder = "MRI_npy"
+            mri.results_folder = args.MRI_folder
             mri.to_json(f"vol{vol.identifier}_reg")
             vol.transform_file = None
 
         # create MRI object based on the Volunteer obj
         assert vol.transform_file is None
         mri = vol.create_MRI(MRI)
-        mri.results_folder = "MRI_npy"
+        mri.results_folder = args.MRI_folder
         mri.to_json(f"vol{vol.identifier}")
         for meshpath in vol.meshes:
             msh_to_h5(meshpath)

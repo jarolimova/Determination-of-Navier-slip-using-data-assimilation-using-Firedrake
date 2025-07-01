@@ -1,4 +1,3 @@
-import csv
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import List
@@ -151,10 +150,3 @@ def plot_velocity_factor(
     plt.savefig(f"{filepath}.png", bbox_inches="tight")
     plt.clf()
     return
-
-
-if __name__ == "__main__":
-    csvfactor = TransientVelocityFactor.from_csv(
-        "/usr/users/jarolimova/refactoring_aorta/inflow.csv"
-    )
-    plot_velocity_factor("csvfactor", csvfactor)

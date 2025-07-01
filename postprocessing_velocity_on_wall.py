@@ -9,9 +9,9 @@ plt.rcParams["text.usetex"]
 plt.rcParams.update({"font.size": 13})
 
 if __name__ == "__main__":
-    results_folder = "/usr/work/jarolimova/assimilation/results_firedrake"
-    element_inits = "p1p1_stab0.0005_1.0_0.01/init_theta0.7_nitsche_data"
-    # element_inits = "p1p1_stab0.0005_1.0_0.01/init_theta0.98_nitsche_notheta_data"
+    results_folder = "results"
+    element_inits = "p1p1_stab0.0005_1.0_0.01/init_theta0.7_data"
+    # element_inits = "p1p1_stab0.0005_1.0_0.01/init_theta0.98_notheta_data"
     reg_solver = "alpha0.001_gamma0.001_eps0.001_avg/picard0"
 
     volunteers = ["vol01", "vol03", "vol10", "vol13", "vol17", "vol19", "vol20"]
@@ -59,12 +59,8 @@ if __name__ == "__main__":
                 wall_integrals = []
                 volume_integrals = []
                 relative = []
-                # pvdnsoptfile = fd.output.VTKFile(
-                #    os.path.join("wall_v_graphs", f"{meshname}.pvd")
-                # )
                 for i, v in enumerate(v_list):
                     v.rename("v")
-                    # pvdnsoptfile.write(v, time=i * dt)
                     t_list.append(i * dt)
                     volume_int = (fd.assemble(fd.sqrt(fd.inner(v, v)) * fd.dx)) / volume
                     wall_int = (
@@ -78,10 +74,6 @@ if __name__ == "__main__":
                 # index of max flow
                 idx = volume_integrals.index(max_vol)
                 print("max_wall_L1: ", wall_integrals[idx])
-                # print(
-                #    "percentage in max v: ",
-                #    100 * wall_integrals[idx] / volume_integrals[idx],
-                # )
                 volume_integrated = 0
                 wall_integrated = 0
                 for i in range(1, len(t_list)):

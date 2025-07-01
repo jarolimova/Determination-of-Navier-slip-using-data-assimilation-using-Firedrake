@@ -3,15 +3,11 @@ into MRI objects, and analyzing meshes. It also provides a way to save the MRI d
 """
 
 import os
-import json
 import copy
 import argparse
 import numpy as np
 import firedrake as fd
 from typing import Optional, List, Tuple
-from firedrake.__future__ import interpolate
-
-import finite_elements
 from MRI_tools.MRI_firedrake import MRI
 
 

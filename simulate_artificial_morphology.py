@@ -12,6 +12,7 @@ with warnings.catch_warnings():
     import firedrake as fd
 from data_loading import read_mesh_h5
 from mri_artificial_data import setup_mri
+from mri_volunteers import msh_to_h5
 
 import argparse
 
@@ -29,13 +30,19 @@ def get_args():
         "--mesh_folder",
         type=str,
         default="data",
-        help="folder where the mesh in .h5 format is located",
+        help="folder where the mesh is located",
     )
     parser.add_argument(
         "--vtk_folder",
         type=str,
         default="data",
         help="folder where the mesh in .h5 format is located",
+    )
+    parser.add_argument(
+        "--msh_paths",
+        type=str,
+        nargs="*",
+        help="paths to the msh files to be saved as h5",
     )
     args = parser.parse_args()
     return args
@@ -44,6 +51,11 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
     threshold = 0.5
+
+    # resave .msh meshes
+    if args.msh_paths is not None:
+        for pth in args.msh_paths:
+            msh_to_h5(pth, folder=args.mesh_folder)
 
     mesh = read_mesh_h5(args.meshname, data_folder=args.mesh_folder)
     Q = fd.FunctionSpace(mesh, "CG", 1)
