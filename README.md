@@ -28,7 +28,21 @@ The installation time is mostly dependent on the installation of Firedrake and s
 
 This demo showcases the complete pipeline for synthetic data generation and Navier slip parameter estimation using PDE-constrained optimization designed to work on a desktop computer.
 
-### Step 1: Generate Ground Truth Flow Data
+### Step 1: Generate Morphological Image and Mesh
+
+Simulate morphological imaging, generate a surface mesh, and build the volume mesh:
+
+      python simulate_artificial_morphology.py tube_02 --voxelsize 0.002 --mesh_folder demo/data --vtk_folder demo/geometry --msh_paths demo/tube_02/tube_02
+      python generate_surface_mesh.py demo/tube_02/mesh_preparation.json
+      python generate_volume_mesh.py demo/tube_02/mesh_preparation.json
+
+Estimated time: 5 minutes
+
+Expected outputs:
+
+   - `demo/geometry`: contains various files generated during the mesh generation process, the most important being `demo/geometry/tube_segmented/tube_segmented.msh` and the corresponding `_cuts.json` files
+
+### Step 2: Generate Ground Truth Flow Data
 
 This script simulates time-dependent artificial velocity fields for a predefined geometry (tube_02) with a prescribed slip value (θ = 0.8):
 
@@ -45,11 +59,11 @@ Expected outputs:
    - `demo/data/pulse0.8_timedep.json`: a list of timesteps corresponding to the timesteps saved with the `.h5` file of the same name
    - `demo/data/velocity_factor_pulse.png`: a picture showing the function used to vary the inlet velocity in time
 
-### Step 2: Create Synthetic 4D Flow MRI
+### Step 3: Create Synthetic 4D Flow MRI
 
 This script simulates MRI acquisition by downsampling and applying velocity encoding:
 
-      python mri_artificial_data.py pulse0.8_avg0.05_timedep tube_02 --element p1p1 --venc 1.0 --voxelsize 0.003 --unsteady --data_folder demo/data --MRI_folder demo/MRI_npy --msh_paths demo/tube_02/tube_02
+      python mri_artificial_data.py pulse0.8_avg0.05_timedep tube_02 --element p1p1 --venc 1.0 --voxelsize 0.003 --unsteady --data_folder demo/data --MRI_folder demo/MRI_npy --msh_paths demo/geometry/tube_segmented/tube_segmented
 
 Estimated time: 2 minutes
 
@@ -61,31 +75,27 @@ Expected outputs:
    - `demo/data/tube_02.h5`: mesh resaved to `h5` format
    - `demo/data/tube_02_cuts.json`: `JSON` file containing information about the inlet and outlet boundaries
 
-### Step 3: Generate Morphological Image and Mesh
-
-Simulate morphological imaging, generate a surface mesh, and build the volume mesh:
-
-      python simulate_artificial_morphology.py tube_02 --voxelsize 0.002 --mesh_folder demo/data --vtk_folder demo/geometry
-      python generate_surface_mesh.py demo/tube_02/mesh_preparation.json
-      python generate_volume_mesh.py demo/tube_02/mesh_preparation.json
-
-Estimated time: 5 minutes
-
-Expected outputs:
-
-   - `demo/geometry`: contains various files generated during the mesh generation process.
-
 ### Step 4: Assimilate and Estimate Slip Parameter
 
 Perform PDE-constrained optimization using synthetic 4D flow MRI to recover both the inflow profile and the optimal Navier slip parameter:
 
-      python unsteady_assimilation.py tube_02 pulse0.8_tube_snr5_3.0mm --alpha 1e-3 --gamma 1e-3 --epsilon 1e-3 --element p1p1 --init_theta 0.7 --dt 0.02 --vin_path data --MRI_space CG --presteps 2 --ftol 1e-5 --gtol 1e-4 --average --stabilization IP --MRI_json_folder demo/MRI_npy --data_folder demo/data --results_folder demo/results
+      python unsteady_assimilation.py tube_segmented pulse0.8_tube_snr5_3.0mm --alpha 1e-3 --gamma 1e-3 --epsilon 1e-3 --element p1p1 --init_theta 0.7 --dt 0.02 --vin_path data --MRI_space CG --presteps 2 --ftol 1e-5 --gtol 1e-4 --average --stabilization IP --MRI_json_folder demo/MRI_npy --data_folder demo/data --results_folder demo/results
 
 Estimated time: 20 minutes
 
 Expected outputs:
 
-   - `demo/results`
+   - `demo/results/data.pvd` 
+   - `demo/results/mri.pvd`
+   - `demo/results/ns_opt_data_est.pvd`
+   - `demo/results/ns_opt.pvd`
+   - `demo/results/ns_opt.h5`
+   - `demo/results/p_opt.h5`
+   - `demo/results/u_in_opt.h5`
+   - `demo/results/u_in_start.pvd`
+   - `demo/results/uin_chpt.h5`
+   - `demo/results/output.csv`
+
 
 ## Instructions for use
 
@@ -95,8 +105,8 @@ To apply the method to any other data, artificial or real, follow these general 
 
 The artificial data can be generated the same way as shown in the demo. 
 
-1. The ground truth velocity and pressure field are computed and saved using `simulate_artificial_unsteady_data.py`
-2. The artificial morphology image is created using `simulate_artificial_morphology.py` and computational mesh is created using `generate_surface_mesh.py` and `generate_volume_mesh.py` by providing the corresponding json file.
+1. The artificial morphology image is created using `simulate_artificial_morphology.py` and computational mesh is created using `generate_surface_mesh.py` and `generate_volume_mesh.py` by providing the corresponding json file.
+2. The ground truth velocity and pressure field are computed and saved using `simulate_artificial_unsteady_data.py`
 3. The artificial MRI data are created using `mri_artificial_data.py`
 4. The assimilation is run using `unsteady_assimilation.py`
 
