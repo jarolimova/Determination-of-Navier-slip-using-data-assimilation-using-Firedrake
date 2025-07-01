@@ -83,19 +83,33 @@ Perform PDE-constrained optimization using synthetic 4D flow MRI to recover both
 
 Estimated time: 20 minutes
 
+Expected outputs are all located in folder `demo/results/tube_segmented/pulse0.8_tube_snr5_3.0mm_CG/p1p1_stab0.0005_1.0_0.01/init_theta0.7_data/facet_0.25_T0.25_dt0.02_pr2/alpha0.001_gamma0.001_eps0.001_avg/picard0` and contain the following:
+ 
+   - `data.pvd`: visualization file of the MRI data interpolated to the computational mesh
+   - `mri.pvd`: visualization file of the MRI data
+   - `ns_opt_data_est.pvd`: visualization file of optimal velocity and pressure field downsampled in time
+   - `ns_opt.pvd`: visualization file of optimal velocity and pressure field
+   - `ns_opt.h5`: optimal velocity field in HDF5 format
+   - `p_opt.h5`: optimal pressure field in HDF5 format
+   - `u_in_opt.h5`: optimal inflow velocity profile in HDF5 format
+   - `u_in_start.pvd`: initial guess for the inflow velocity profile
+   - `uin_chpt.h5`: checkpoint file for inflow velocity during optimization
+   - `output.csv`: summary of optimization results 
+
+### Step 5: Plot and Visualize Results
+
+All the files in `demo/results/tube_segmented/pulse0.8_tube_snr5_3.0mm_CG/p1p1_stab0.0005_1.0_0.01/init_theta0.7_data/facet_0.25_T0.25_dt0.02_pr2/alpha0.001_gamma0.001_eps0.001_avg/picard0` folder with in `.pvd` format can be viewed in [Paraview](https://www.paraview.org/).
+Other option to visualize the results is to run postprocessing scripts:
+
+      python postprocessing_pdrop_vavg.py --meshes tube_02 --datanames pulse0.8_tube_snr5_3.0mm_CG --MRI_data demo/MRI_npy/pulse0.8_tube_snr5_3.0mm --ground_truth_h5 demo/data/tube_02/p1p1/pulse0.8_timedep --labels slip --results_folder demo/results --data_folder demo/data --plot_folder demo/plots
+      python postprocessing_velocity_on_wall.py tube_02 pulse0.8_tube_snr5_3.0mm_CG --discretization facet_0.25_T0.25_dt0.02_pr2 --results_folder demo/results --plot_folder demo/plots 
+
+Estimated time: 2 minutes
+
 Expected outputs:
-
-   - `demo/results/data.pvd`: visualization file of the MRI data interpolated to the computational mesh
-   - `demo/results/mri.pvd`: visualization file of the MRI data
-   - `demo/results/ns_opt_data_est.pvd`: visualization file of optimal velocity and pressure field downsampled in time
-   - `demo/results/ns_opt.pvd`: visualization file of optimal velocity and pressure field
-   - `demo/results/ns_opt.h5`: optimal velocity field in HDF5 format
-   - `demo/results/p_opt.h5`: optimal pressure field in HDF5 format
-   - `demo/results/u_in_opt.h5`: optimal inflow velocity profile in HDF5 format
-   - `demo/results/u_in_start.pvd`: initial guess for the inflow velocity profile
-   - `demo/results/uin_chpt.h5`: checkpoint file for inflow velocity during optimization
-   - `demo/results/output.csv`: summary of optimization results 
-
+      - `demo/plots/pressure_drop_tube_segmented_facet_0.25_T0.25_dt0.02` - plot showing the change of average velocity and pressure drop over time
+      - `demo/plots/v_on_wall_tube_segmented` - plot comparing the average velocity on wall versus the average velocity in bulk over time
+      - `demo/plots/relative_tube_segmented` - plot of the ratio of velocity on wall and in bulk over time
 
 ## Instructions for use
 
