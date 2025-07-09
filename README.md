@@ -1,4 +1,4 @@
-# Determination of Navier slip using data assimilation using Firedrake
+# Determination of inlet velocity and Navier slip using data assimilation by Firedrake
 
 This repository contains the implementation of a data assimilation framework for estimating Navier’s slip boundary condition in cardiovascular flows. The method leverages PDE-constrained optimization informed by 4D phase-contrast MRI (4D flow MRI) data and is implemented using the [Firedrake](https://www.firedrakeproject.org/) finite element library.
 
